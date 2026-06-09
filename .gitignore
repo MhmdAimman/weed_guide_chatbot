@@ -1,0 +1,10 @@
+.env
+.venv/
+chroma_db/
+__pycache__/
+node_modules/
+dist/
+.vite/
+*.pyc
+.DS_Store
+*:Zone.Identifier
