@@ -1,0 +1,13 @@
+[project]
+name = "weed-guide-backend"
+version = "0.1.0"
+description = "Las Animas County Weed Guide Chatbot Backend"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.6",
+    "uvicorn[standard]>=0.34.0",
+    "pypdf>=5.1.0",
+    "chromadb>=0.6.3",
+    "openai>=1.58.1",
+    "python-dotenv>=1.0.1",
+]

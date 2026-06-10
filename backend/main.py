@@ -2,13 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from backend.chatbot import WeedChatbot
+from chatbot import WeedChatbot
+from config import FRONTEND_ORIGINS
 
 app = FastAPI(title="Weed Guide Chatbot")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=FRONTEND_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,6 +32,11 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     reply: str
     state: ChatState | None = None
+
+
+@app.get("/api/health")
+async def health():
+    return {"status": "ok"}
 
 
 @app.post("/api/chat")

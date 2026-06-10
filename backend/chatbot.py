@@ -3,7 +3,7 @@ import re
 
 from openai import OpenAI
 
-from backend.config import (
+from config import (
     CHAT_MODEL,
     OPENAI_API_KEY,
     SPECIES_ALIASES,
@@ -11,7 +11,7 @@ from backend.config import (
     SPECIES_TO_CATEGORY,
     TOPICS,
 )
-from backend.vector_store import get_collection, query_collection
+from vector_store import get_collection, query_collection
 
 
 TRAIT_WORDS = {

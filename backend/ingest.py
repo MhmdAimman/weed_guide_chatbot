@@ -1,6 +1,6 @@
 from pypdf import PdfReader
 
-from backend.config import (
+from config import (
     CHUNK_OVERLAP,
     CHUNK_SIZE,
     COLLECTION_NAME,
@@ -8,7 +8,7 @@ from backend.config import (
     SPECIES_ALIASES,
     SPECIES_TO_CATEGORY,
 )
-from backend.vector_store import get_client, get_collection
+from vector_store import get_client, get_collection
 
 
 def clean_text(text):

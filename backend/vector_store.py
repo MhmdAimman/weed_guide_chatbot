@@ -1,6 +1,6 @@
 import chromadb
 from chromadb.utils import embedding_functions
-from backend.config import PERSIST_DIR, COLLECTION_NAME, EMBED_MODEL, OPENAI_API_KEY
+from config import PERSIST_DIR, COLLECTION_NAME, EMBED_MODEL, OPENAI_API_KEY
 
 
 def get_client():

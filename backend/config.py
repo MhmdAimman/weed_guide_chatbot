@@ -1,14 +1,24 @@
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent
+
+load_dotenv(BASE_DIR / ".env")
+load_dotenv(BASE_DIR.parent / ".env")
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+FRONTEND_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("FRONTEND_ORIGIN", "http://localhost:5173").split(",")
+    if origin.strip()
+]
 EMBED_MODEL = "text-embedding-3-small"
 CHAT_MODEL = "gpt-4o-mini"
-PERSIST_DIR = "chroma_db"
+PERSIST_DIR = str(BASE_DIR / "chroma_db")
 COLLECTION_NAME = "weed_guide"
-PDF_PATH = "manual.pdf"
+PDF_PATH = str(BASE_DIR / "manual.pdf")
 CHUNK_SIZE = 2000
 CHUNK_OVERLAP = 500
 
