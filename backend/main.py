@@ -10,6 +10,7 @@ app = FastAPI(title="Weed Guide Chatbot")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[*FRONTEND_ORIGINS, "https://weed-guide-chatbot.vercel.app"],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
