@@ -1,5 +1,7 @@
 import chromadb
-from chromadb.utils import embedding_functions
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
+
 from config import PERSIST_DIR, COLLECTION_NAME, EMBED_MODEL, OPENAI_API_KEY
 
 
@@ -8,22 +10,24 @@ def get_client():
 
 
 def get_embedding_function():
-    return embedding_functions.OpenAIEmbeddingFunction(
+    return OpenAIEmbeddings(
         api_key=OPENAI_API_KEY,
-        model_name=EMBED_MODEL,
+        model=EMBED_MODEL,
     )
 
 
 def get_collection():
-    client = get_client()
-    ef = get_embedding_function()
-    return client.get_or_create_collection(
-        name=COLLECTION_NAME,
-        embedding_function=ef,
-        metadata={"hnsw:space": "cosine"},
+    return Chroma(
+        collection_name=COLLECTION_NAME,
+        persist_directory=PERSIST_DIR,
+        embedding_function=get_embedding_function(),
+        collection_metadata={"hnsw:space": "cosine"},
     )
 
 
 def query_collection(collection, text, n_results=5):
-    results = collection.query(query_texts=[text], n_results=n_results)
-    return results
+    results = collection.similarity_search_with_score(text, k=n_results)
+    return [
+        {"document": document.page_content, "metadata": document.metadata, "distance": distance}
+        for document, distance in results
+    ]

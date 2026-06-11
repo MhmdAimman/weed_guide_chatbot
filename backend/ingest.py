@@ -1,3 +1,4 @@
+from langchain_core.documents import Document
 from pypdf import PdfReader
 
 from config import (
@@ -85,10 +86,13 @@ def ingest():
         return
 
     collection = reset_collection()
-    collection.add(
+    documents = [
+        Document(page_content=document, metadata=metadata)
+        for _, document, metadata in all_chunks
+    ]
+    collection.add_documents(
+        documents=documents,
         ids=[chunk_id for chunk_id, _, _ in all_chunks],
-        documents=[document for _, document, _ in all_chunks],
-        metadatas=[metadata for _, _, metadata in all_chunks],
     )
 
     species_found = sorted(

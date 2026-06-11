@@ -1,7 +1,8 @@
-import json
 import re
 
-from openai import OpenAI
+from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
 
 from config import (
     CHAT_MODEL,
@@ -139,12 +140,15 @@ def flatten_query_results(results):
 
 class WeedChatbot:
     def __init__(self):
-        self.client = OpenAI(api_key=OPENAI_API_KEY)
+        self.llm = ChatOpenAI(
+            api_key=OPENAI_API_KEY,
+            model=CHAT_MODEL,
+            temperature=0,
+        )
         self.collection = get_collection()
 
     def retrieve_context(self, query, species=None, n_results=8):
-        results = query_collection(self.collection, query, n_results=n_results)
-        items = flatten_query_results(results)
+        items = query_collection(self.collection, query, n_results=n_results)
         if species:
             lower_species = species.lower()
             species_items = [
@@ -177,23 +181,21 @@ class WeedChatbot:
         if not context:
             return "I don't have that information in the guide."
 
-        system = (
-            "You are the Weed Guide chatbot, an expert agricultural assistant. "
-            "Answer using ONLY the provided context from the Las Animas County Weed Management Pocket Guide. "
-            "Do not use outside information. Do not include source page citations. "
-            "If the context does not contain the answer, say: I don't have that information in the guide. "
-            "Keep the answer clear and direct.\n\nCONTEXT:\n"
-            + context
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "You are the Weed Guide chatbot, an expert agricultural assistant. "
+                    "Answer using ONLY the provided context from the Las Animas County Weed Management Pocket Guide. "
+                    "Do not use outside information. Do not include source page citations. "
+                    "If the context does not contain the answer, say: I don't have that information in the guide. "
+                    "Keep the answer clear and direct.\n\nCONTEXT:\n{context}",
+                ),
+                ("human", "{message}"),
+            ]
         )
-        resp = self.client.chat.completions.create(
-            model=CHAT_MODEL,
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": message},
-            ],
-            temperature=0,
-        )
-        return resp.choices[0].message.content.strip()
+        chain = prompt | self.llm | StrOutputParser()
+        return chain.invoke({"context": context, "message": message}).strip()
 
     def ask_species(self, category):
         species = get_species_for_category(category)
@@ -262,19 +264,19 @@ class WeedChatbot:
             '{"identified": false, "species": null, "matching_traits": []}. '
             f"Allowed species names: {', '.join(species_names)}.\n\nCONTEXT:\n{context}"
         )
-        resp = self.client.chat.completions.create(
-            model=CHAT_MODEL,
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": message},
-            ],
-            response_format={"type": "json_object"},
-            temperature=0,
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", system),
+                ("human", "{message}"),
+            ]
         )
 
         try:
-            result = json.loads(resp.choices[0].message.content)
-        except json.JSONDecodeError:
+            chain = prompt | self.llm.bind(response_format={"type": "json_object"}) | JsonOutputParser()
+            result = chain.invoke({"message": message})
+        except Exception:
+            result = {"identified": False, "species": None, "matching_traits": []}
+        if not isinstance(result, dict):
             result = {"identified": False, "species": None, "matching_traits": []}
 
         species = canonicalize_species_name(result.get("species"))
